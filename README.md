@@ -313,7 +313,7 @@ python bookings-db/src/gen_synthetic_hotels.py
 # 2. Start the mock API to test expected behavior
 cd ai_agents_hospitality-api && python main.py
 
-# 3. Access the chatbot at http://localhost:8002
+# 3. Access the chatbot at http://localhost:8001
 ```
 
 ## Requirements
