@@ -5,10 +5,10 @@
 
 agent:
   # LLM Provider: "gemini" or "openai"
-  provider: "gemini"
+  provider: "openai"
   
-  # Model name
-  model: "gemini-2.5-flash-lite"
+  # Model name (change to a model your OpenAI key has access to, e.g. gpt-3.5-turbo or gpt-4)
+  model: "gpt-3.5-turbo"
   
   # Temperature (0.0 to 1.0)
   temperature: 0

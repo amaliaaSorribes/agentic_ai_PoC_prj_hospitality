@@ -21,8 +21,8 @@ from util.logger_config import logger
 class AgentConfig:
     """Configuration for AI agents."""
     
-    provider: str = "gemini"  # "gemini" or "openai"
-    model: str = "gemini-2.5-flash-lite"
+    provider: str = "openai"  # "gemini" or "openai"
+    model: str = "gpt-3.5-turbo"
     temperature: float = 0.0
     api_key: str = ""
     
@@ -111,7 +111,10 @@ def get_agent_config() -> AgentConfig:
     
     # API key ONLY from environment variables (for security)
     # Should never be in configuration files
-    api_key = _get_env_value("AI_AGENTIC_API_KEY")
+    # Prefer AI_AGENTIC_API_KEY, but fall back to OPENAI_API_KEY for convenience if set
+    api_key = _get_env_value("AI_AGENTIC_API_KEY") or _get_env_value("OPENAI_API_KEY")
+    if api_key and _get_env_value("AI_AGENTIC_API_KEY") is None and _get_env_value("OPENAI_API_KEY"):
+        logger.info("Using OPENAI_API_KEY environment variable as agent API key (fallback).")
     
     # Create and return configuration object
     config = AgentConfig(

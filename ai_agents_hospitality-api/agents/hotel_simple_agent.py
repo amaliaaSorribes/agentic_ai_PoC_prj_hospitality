@@ -21,11 +21,8 @@ except ImportError:
     # Fallback to old structure (v0.1)
     from langchain.prompts import ChatPromptTemplate
 
-try:
-    from langchain_google_genai import ChatGoogleGenerativeAI
-except ImportError:
-    # Fallback to community package if google_genai not available
-    from langchain_community.chat_models import ChatGoogleGenerativeAI
+# NOTE: Gemini (Google) imports are performed lazily inside _create_agent_chain()
+# to avoid import-time errors when the user configures OpenAI as provider.
 
 # Import ChatOpenAI for proxy/custom endpoint support
 try:
@@ -151,7 +148,18 @@ def _create_agent_chain():
         )
         logger.info(f"Using OpenAI API with model: {config.model}")
     else:
-        # Standard Gemini API usage
+        # Standard Gemini API usage (import lazily so OpenAI users don't need extra packages)
+        try:
+            from langchain_google_genai import ChatGoogleGenerativeAI
+        except Exception:
+            try:
+                from langchain_community.chat_models import ChatGoogleGenerativeAI
+            except Exception:
+                raise ImportError(
+                    "Gemini provider requested but Gemini support packages are not installed. "
+                    "Install 'langchain-google-genai' or the community 'langchain_community' package, OR set AI_AGENTIC_PROVIDER=openai and provide an OpenAI API key via AI_AGENTIC_API_KEY."
+                )
+
         llm = ChatGoogleGenerativeAI(
             model=config.model,
             temperature=config.temperature,
@@ -204,11 +212,32 @@ def answer_hotel_question(question: str) -> str:
         hotels_data, hotel_details_text = load_hotel_data()
         
         # Prepare context from loaded files
-        hotel_context = f"""
-{hotel_details_text}
+        # NOTE: LLMs have context length limits. Build a short hotels summary (first N) and truncate details if needed
+        MAX_CONTEXT_CHARS = 4000
+        hotel_details_for_context = hotel_details_text
 
-Hotels JSON Summary:
-{json.dumps(hotels_data, indent=2, ensure_ascii=False)}
+        # Create a compact summary of hotels (first 3 entries) to avoid sending huge JSON
+        hotels_list = hotels_data.get("hotels", []) if isinstance(hotels_data, dict) else []
+        summary_lines = [f"Total hotels: {len(hotels_list)}"]
+        for h in hotels_list[:3]:
+            name = h.get("hotel_name") or h.get("name") or "(unknown)"
+            city = h.get("city", "(unknown)")
+            price = h.get("price", "(n/a)")
+            summary_lines.append(f"- {name} — {city} — {price}")
+        hotels_summary = "\n".join(summary_lines)
+
+        combined_preview = f"{hotel_details_for_context}\n\nHotels Summary:\n{hotels_summary}"
+        if len(combined_preview) > MAX_CONTEXT_CHARS:
+            # Truncate hotel details aggressively to fit within model limits
+            allowed = MAX_CONTEXT_CHARS - len("\n\nHotels Summary:\n") - len(hotels_summary) - 200
+            hotel_details_for_context = hotel_details_for_context[:max(200, allowed)] + "\n\n... (hotel details truncated for length) ...\n"
+            logger.warning("Hotel context truncated to fit model context limits")
+
+        hotel_context = f"""
+{hotel_details_for_context}
+
+Hotels Summary:
+{hotels_summary}
 """
         
         # Create agent chain
