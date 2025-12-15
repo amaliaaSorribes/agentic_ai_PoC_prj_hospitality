@@ -107,7 +107,7 @@ Below is a visual representation of the project architecture:
 - **Depends On**: Depends on the `bookings-db-data-loader` service.
 - **Environment Variables**:
   - `ENVIRONMENT=development.localcontainer`
-  - `AI_AGENTIC_API_KEY=${AI_AGENTIC_API_KEY_WKSP_HOSPITALITY}`
+  - `AI_AGENTIC_API_KEY=${AI_AGENTIC_API_KEY}`
   - `POSTGRES_HOST=${POSTGRES_HOST}`
   - `POSTGRES_PORT=${POSTGRES_PORT}`
   - `POSTGRES_USER=${POSTGRES_USER}`
@@ -161,7 +161,7 @@ This component provides a PostgreSQL database for hotel bookings, along with a d
 #### Temporary (current terminal session only)
 
 ```bash
-export AI_AGENTIC_API_KEY_WKSP_HOSPITALITY=your-api-key-here
+export AI_AGENTIC_API_KEY=your-api-key-here
 ```
 
 #### Permanent (recommended for WSL/Linux)
@@ -178,7 +178,7 @@ nano ~/.bashrc
 ########################################
 ### PERSONAL KEYS
 ########################################
-export AI_AGENTIC_API_KEY_WKSP_HOSPITALITY=your-api-key-here
+export AI_AGENTIC_API_KEY=your-api-key-here
 ########################################
 ### PERSONAL KEYS (end)
 ########################################
@@ -204,8 +204,8 @@ The project includes a script at the root level (`start-app.sh`) that automates 
 #### Parameters:
 
 - `--logs` or `-l`: Captures logs continuously in background mode
-- `--buildnocache` or `-bn`: Performs docker-compose up with build and no cache
-- `--build` or `-b`: Performs docker-compose up with build using default cache
+- `--buildnocache` or `-bn`: Performs docker compose up with build and no cache
+- `--build` or `-b`: Performs docker compose up with build using default cache
 - `--no_ai_agent` or `-na`: Starts only database services and skips the ai_agents_hospitality-api service
 - `--force` or `-f`: Forces execution even if containers are already running (USE WITH CAUTION)
 - `--help` or `-h`: Shows help information with all available options and examples
@@ -255,7 +255,7 @@ This starts only the database services without the AI agent API service.
 ```bash
 ./start-app.sh --force
 ```
-This forces the script to continue execution even if containers from this docker-compose configuration are already running. Use with caution as it may cause issues with running containers.
+This forces the script to continue execution even if containers from this docker compose configuration are already running. Use with caution as it may cause issues with running containers.
 
 The script will:
 - Start all services in detached mode
@@ -382,7 +382,7 @@ To get the most out of this project and workshop, familiarity with the following
 | Area | Level | Topics |
 |------|-------|--------|
 | **Python** | Intermediate | Classes, async/await, virtual environments, pip/uv |
-| **Docker** | Basic | Containers, images, docker-compose, volumes |
+| **Docker** | Basic | Containers, images, docker compose, volumes |
 | **SQL** | Basic | SELECT, JOIN, WHERE, aggregate functions |
 | **REST APIs** | Basic | HTTP methods, WebSockets, JSON |
 | **AI/LLMs** | Basic | Understanding of LLMs, prompts, and embeddings |
@@ -393,7 +393,7 @@ To get the most out of this project and workshop, familiarity with the following
 
 | Service | Purpose | How to Obtain |
 |---------|---------|---------------|
-| **OpenAI API Key** | Powers the LangChain AI agents | [OpenAI Platform](https://platform.openai.com/api-keys) |
+| **Google Gemini API Key** | Powers the LangChain AI agents | [Google AI Studio](https://makersuite.google.com/app/apikey) |
 
-> ⚠️ **Note**: An OpenAI API or equivalent key with available credits is required to run the AI agents. The workshop exercises will make API calls that consume credits.
+> ⚠️ **Note**: A Google Gemini API key with available credits is required to run the AI agents. The workshop exercises will make API calls that consume credits.
 
