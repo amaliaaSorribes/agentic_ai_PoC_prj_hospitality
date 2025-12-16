@@ -53,7 +53,7 @@ def test_exercise_0():
         try:
             response = answer_hotel_question(query)
             print(f"✅ Response received ({len(response)} characters)")
-            print(f"\n{response[:200]}...")  # Show first 200 chars
+            print(f"\n{response}")
             success_count += 1
         except Exception as e:
             print(f"❌ Error: {e}")
