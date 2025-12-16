@@ -217,13 +217,32 @@ def answer_hotel_question(question: str) -> str:
         hotel_details_for_context = hotel_details_text
 
         # Create a compact summary of hotels (first 3 entries) to avoid sending huge JSON
-        hotels_list = hotels_data.get("hotels", []) if isinstance(hotels_data, dict) else []
+        # Normalize the hotel list key (some outputs use "Hotels" with capital H)
+        if isinstance(hotels_data, dict):
+            hotels_list = hotels_data.get("hotels") or hotels_data.get("Hotels") or []
+        elif isinstance(hotels_data, list):
+            hotels_list = hotels_data
+        else:
+            hotels_list = []
+
         summary_lines = [f"Total hotels: {len(hotels_list)}"]
         for h in hotels_list[:3]:
-            name = h.get("hotel_name") or h.get("name") or "(unknown)"
-            city = h.get("city", "(unknown)")
-            price = h.get("price", "(n/a)")
-            summary_lines.append(f"- {name} — {city} — {price}")
+            name = h.get("Name") or h.get("name") or h.get("hotel_name") or "(unknown)"
+            address = h.get("Address") or {}
+            city = address.get("City") or address.get("city") or "(unknown)"
+
+            # Meal plans: prefer structured MealPlanWeights, fallback to MealPlanPrices
+            meal_plan_weights = h.get("SyntheticParams", {}).get("MealPlanWeights", {})
+            meal_plan_prices = h.get("SyntheticParams", {}).get("MealPlanPrices", {})
+            meal_plans = list(meal_plan_weights.keys()) if meal_plan_weights else list(meal_plan_prices.keys())
+            meal_plans = [mp.replace('_', ' ').title() for mp in meal_plans] if meal_plans else ["(n/a)"]
+
+            # Room types (unique)
+            room_types = sorted({r.get("Type") for r in h.get("Rooms", []) if r.get("Type")})
+
+            summary_lines.append(
+                f"- {name} — {city} — Meal plans: {', '.join(meal_plans)} — Room types: {', '.join(room_types[:5])}"
+            )
         hotels_summary = "\n".join(summary_lines)
 
         combined_preview = f"{hotel_details_for_context}\n\nHotels Summary:\n{hotels_summary}"
