@@ -1,6 +1,6 @@
 import json
 from langchain_community.document_loaders import JSONLoader, TextLoader
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
@@ -40,7 +40,8 @@ text_splitter = RecursiveCharacterTextSplitter(
 documents = text_splitter.split_documents(documents)
 
 # Create embeddings and vector store
-embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=os.getenv("AI_AGENTIC_API_KEY"))
+embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+
 vectorstore = Chroma.from_documents(documents, embeddings, persist_directory="hotel_vector_store") #persist the vector store
 
 vectorstore.persist()
