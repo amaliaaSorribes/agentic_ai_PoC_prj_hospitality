@@ -3,22 +3,38 @@ from langchain_classic.chains.retrieval_qa.base import RetrievalQA
 from langchain_chroma import Chroma
 from langchain_core.prompts import PromptTemplate
 import os
+from pathlib import Path
 
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, api_key=os.getenv("AI_AGENTIC_API_KEY"))
+BASE_DIR = Path(__file__).resolve().parent
+VECTORSTORE_PATH = BASE_DIR / "hotel_vector_store"
+
+if not VECTORSTORE_PATH.exists():
+    raise RuntimeError(
+        f"Vector store not found at {VECTORSTORE_PATH}. "
+        "Refusing to create a new one."
+    )
+
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
 # Carga el vector store ya persistido
 vectorstore = Chroma(
-    persist_directory="hotel_vector_store",
+    persist_directory=str(VECTORSTORE_PATH),
     embedding_function=OpenAIEmbeddings(model="text-embedding-3-small")
 )
+
+if vectorstore._collection.count() == 0:
+    raise RuntimeError(
+        "Vector store loaded but contains 0 documents. "
+        "Aborting to avoid false RAG responses."
+    )
 
 PROMPT = PromptTemplate(
     input_variables=["context", "question"],
     template="""
 You are a helpful assistant that provides information about hotels.
 
-Use ONLY the information in the context to answer the question.
-If the answer is not in the context, respond with:
+Use the information in the context to answer the question as accurately as possible.
+If the context does not contain enough information, say:
 "I don't have the relevant information."
 
 Context:
@@ -62,3 +78,4 @@ if __name__ == "__main__":
         print("\nDocuments used:")
         for doc in result["source_documents"]:
             print("-", doc.metadata)
+        print("\n" + "-"*20)
