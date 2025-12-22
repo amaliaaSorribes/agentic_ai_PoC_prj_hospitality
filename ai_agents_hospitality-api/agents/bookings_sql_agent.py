@@ -67,6 +67,16 @@ def two_step_query(agent, db, user_question):
     format_sql_query(user_question, db, sql_query)
     return
 
+def validate_question(user_question):
+    validation_prompt = f"""
+    Given the following user question, determine if it is related to the hospitality bookings database.
+    Only respond with 'Valid' or 'Invalid'.
+
+    User Question: {user_question}
+    """
+    validation_response = agent.run(validation_prompt)
+    return "Valid" in validation_response
+
 if __name__ == "__main__":
     queries = [
         "Tell me the amount of bookings for Obsidian Tower in 2025",
@@ -82,5 +92,13 @@ if __name__ == "__main__":
         print(f"{i+1}: {query}")
         
     print("\n")
-    user_inp = int(input("Select query number (1-6): "))
-    two_step_query(agent, db, queries[user_inp-1])
+    user_inp = int(input("Select query number (1-6) or 0 to enter prompt manually: "))
+
+    if user_inp == 0:
+        user_question = input("Enter your custom query: ")
+        if validate_question(user_question):
+            two_step_query(agent, db, user_question)
+        else:
+            print(f"Query: \n{user_question}\n\nResponse: \nInvalid question, not related to the database.")
+    else:
+        two_step_query(agent, db, queries[user_inp-1])
