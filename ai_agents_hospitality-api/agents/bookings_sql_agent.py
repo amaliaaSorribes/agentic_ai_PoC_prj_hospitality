@@ -37,6 +37,8 @@ Dates are important. Be careful with time ranges.
 Return results in a clear, human-readable summary.
 """
 
+from langchain_core.callbacks import BaseCallbackHandler
+
 agent = create_sql_agent(
     llm=llm,
     toolkit=toolkit,
@@ -44,35 +46,25 @@ agent = create_sql_agent(
     verbose=True
 )
 
-def generate_sql_query(agent, db, user_question):
+def generate_and_execute_sql_query(agent, db, user_question):
     sql_query = agent.run(
         f"Generate only the SQL query for this question:\n{user_question}"
     )
     return sql_query
 
-import re
-
-def extract_sql(text):
-    match = re.search(r"```sql(.*?)```", text, re.DOTALL)
-    if match:
-        return match.group(1).strip()
-    return text.strip()
-
-def execute_and_format_sql_query(user_question,db, sql_query):
-    result = db.run(sql_query)
+def format_sql_query(user_question,db, sql_query):
     
     # Formatear resultado
-    print(f"Query:\n {user_question}\n\nSQL executed:\n {sql_query}\n\nResult: {result}\n")
+    print(f"Query:\n {user_question}\n\nResult:\n {sql_query}\n")
     print("-"*40+"\n")
 
-    return result
+    return sql_query
 
 def two_step_query(agent, db, user_question):
     # Step 1: generate SQL
-    raw_sql = generate_sql_query(agent, db, user_question)
-    sql_query = extract_sql(raw_sql)
+    sql_query = generate_and_execute_sql_query(agent, db, user_question)
     # Step 2: execute and format SQL
-    execute_and_format_sql_query(user_question, db, sql_query)
+    format_sql_query(user_question, db, sql_query)
     return
 
 if __name__ == "__main__":
