@@ -60,6 +60,16 @@ def format_sql_query(user_question,db, sql_query):
 
     return sql_query
 
+#for sql as input
+def execute_and_format_sql_query(db, sql_query):
+    result = db.run(sql_query)
+    
+    # Formatear resultado
+    print(f"SQL executed:\n {sql_query}\n\nResult: {result}\n")
+    print("-"*40+"\n")
+
+    return result
+
 def two_step_query(agent, db, user_question):
     # Step 1: generate SQL
     sql_query = generate_and_execute_sql_query(agent, db, user_question)
@@ -95,7 +105,7 @@ if __name__ == "__main__":
     user_inp = int(input("Select query number (1-6) or 0 to enter prompt manually: "))
 
     if user_inp == 0:
-        user_question = input("Enter your custom query: ")
+        user_question = input("Enter your custom query: ") # Example: "List the top 5 hotels depending on guest count"
         if validate_question(user_question):
             two_step_query(agent, db, user_question)
         else:
