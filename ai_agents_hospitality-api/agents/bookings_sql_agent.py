@@ -29,6 +29,8 @@ Rules:
 - Limit results unless the user explicitly asks for all records.
 - If the question is ambiguous, ask a clarifying question.
 - Translate business questions into correct SQL.
+- Occupancy Rate = (Total Occupied Nights / Total Available Room-Nights) * 100
+- RevPAR (Revenue Per Available Room) = Total Room Revenue / Total Available Rooms
 
 Context:
 The database contains information about bookings, guests, rooms, hotels, dates, prices, and availability.
@@ -36,8 +38,6 @@ Dates are important. Be careful with time ranges.
 
 Return results in a clear, human-readable summary.
 """
-
-from langchain_core.callbacks import BaseCallbackHandler
 
 agent = create_sql_agent(
     llm=llm,
@@ -68,17 +68,19 @@ def two_step_query(agent, db, user_question):
     return
 
 if __name__ == "__main__":
-    queries = ["Tell me the amount of bookings for Obsidian Tower in 2025"]
-
-    queries1 = [
-        "Tell me the amount of bookings for Obsidian Tower in 2025"
-        "What is the occupancy rate for Imperial Crown in January 2025?"
-        "Show me the total revenue for hotels in Paris in Q1 2025"
-        "Calculate the RevPAR for Grand Victoria in August 2025"
-        "How many guests from Germany stayed at our hotels in 2025?"
+    queries = [
+        "Tell me the amount of bookings for Obsidian Tower in 2025",
+        "What is the occupancy rate for Imperial Crown in January 2025?",
+        "Show me the total revenue for hotels in Paris in Q1 2025",
+        "Calculate the RevPAR for Grand Victoria in August 2025",
+        "How many guests from Germany stayed at our hotels in 2025?",
         "Compare bookings by meal plan type across all hotels"    
     ]
 
-    for query in queries:
-        two_step_query(agent, db, query)
-
+    print("Available Queries:")
+    for i, query in enumerate(queries):
+        print(f"{i+1}: {query}")
+        
+    print("\n")
+    user_inp = int(input("Select query number (1-6): "))
+    two_step_query(agent, db, queries[user_inp-1])
