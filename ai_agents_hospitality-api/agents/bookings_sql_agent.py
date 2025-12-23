@@ -1,16 +1,9 @@
 from langchain_community.utilities import SQLDatabase
-
-db = SQLDatabase.from_uri(
-    "postgresql://postgres:postgres@localhost:5432/bookings_db"
-)
-
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain_community.agent_toolkits.sql.base import create_sql_agent
 from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-
-toolkit = SQLDatabaseToolkit(db=db, llm=llm)
 
 # Create SQL agent with custom system prompt
 
@@ -39,20 +32,13 @@ Dates are important. Be careful with time ranges.
 Return results in a clear, human-readable summary.
 """
 
-agent = create_sql_agent(
-    llm=llm,
-    toolkit=toolkit,
-    system_prompt=system_prompt,
-    verbose=True
-)
-
 def generate_and_execute_sql_query(agent, db, user_question):
     sql_query = agent.run(
         f"Generate only the SQL query for this question:\n{user_question}"
     )
     return sql_query
 
-def format_sql_query(user_question,db, sql_query):
+def format_sql_query(user_question, db, sql_query):
     
     # Formatear resultado
     print(f"Query:\n {user_question}\n\nResult:\n {sql_query}\n")
@@ -70,7 +56,24 @@ def execute_and_format_sql_query(db, sql_query):
 
     return result
 
-def two_step_query(agent, db, user_question):
+def get_agent(db):
+    agent = create_sql_agent(
+        llm=llm,
+        toolkit = SQLDatabaseToolkit(db=db, llm=llm),
+        system_prompt=system_prompt,
+        verbose=True
+    )
+    return agent   
+
+def get_db():
+    db = SQLDatabase.from_uri(
+        "postgresql://postgres:postgres@localhost:5432/bookings_db"
+    )
+    return db
+
+def two_step_query(user_question):
+    db = get_db()
+    agent = get_agent(db)
     # Step 1: generate SQL
     sql_query = generate_and_execute_sql_query(agent, db, user_question)
     # Step 2: execute and format SQL
@@ -84,6 +87,8 @@ def validate_question(user_question):
 
     User Question: {user_question}
     """
+    db = get_db()
+    agent = get_agent(db)
     validation_response = agent.run(validation_prompt)
     return "Valid" in validation_response
 
@@ -107,8 +112,8 @@ if __name__ == "__main__":
     if user_inp == 0:
         user_question = input("Enter your custom query: ") # Example: "List the top 5 hotels depending on guest count"
         if validate_question(user_question):
-            two_step_query(agent, db, user_question)
+            two_step_query(user_question)
         else:
             print(f"Query: \n{user_question}\n\nResponse: \nInvalid question, not related to the database.")
     else:
-        two_step_query(agent, db, queries[user_inp-1])
+        two_step_query(queries[user_inp-1])
