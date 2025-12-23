@@ -71,14 +71,15 @@ def get_db():
     )
     return db
 
+def two_step_query_debugging(user_question):
+    query = two_step_query(user_question)
+    format_sql_query(user_question, get_db(), query)
+
 def two_step_query(user_question):
     db = get_db()
     agent = get_agent(db)
-    # Step 1: generate SQL
     sql_query = generate_and_execute_sql_query(agent, db, user_question)
-    # Step 2: execute and format SQL
-    format_sql_query(user_question, db, sql_query)
-    return
+    return str(sql_query)
 
 def validate_question(user_question):
     validation_prompt = f"""
@@ -112,8 +113,8 @@ if __name__ == "__main__":
     if user_inp == 0:
         user_question = input("Enter your custom query: ") # Example: "List the top 5 hotels depending on guest count"
         if validate_question(user_question):
-            two_step_query(user_question)
+            two_step_query_debugging(user_question)
         else:
             print(f"Query: \n{user_question}\n\nResponse: \nInvalid question, not related to the database.")
     else:
-        two_step_query(queries[user_inp-1])
+        two_step_query_debugging(queries[user_inp-1])

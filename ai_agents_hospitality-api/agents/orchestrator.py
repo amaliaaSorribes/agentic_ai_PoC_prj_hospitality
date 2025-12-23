@@ -1,6 +1,6 @@
 from openai import OpenAI
-from bookings_sql_agent import two_step_query, validate_question
-from hotel_details_agent import hotel_details_agent
+from agents.bookings_sql_agent import two_step_query, validate_question, two_step_query_debugging
+from agents.hotel_details_agent import hotel_details_agent, hotel_details_agent_debugging
 
 client = OpenAI()
 
@@ -81,7 +81,7 @@ def format_query(user_question, query):
 
     return query
 
-def run_orchestrator():
+def run_orchestrator_entering_input():
     sys_print("Welcome to the Hospitality AI Agent System!")
     query = input("Enter your hospitality-related question: ")
     print("\n"+"-"*40+"\n")
@@ -90,15 +90,34 @@ def run_orchestrator():
     if "sql" in recomended_agent:
         if validate_question(query):
             sys_print("Using SQL Agent to process the query...\n")
-            two_step_query(query)
+            two_step_query_debugging(query)
         else:
             sys_print("The question is not valid for the hospitality bookings database.\n")
     elif "rag" in recomended_agent:
         sys_print("Using RAG Agent to process the query...\n")
-        response = hotel_details_agent(query)
+        response = hotel_details_agent_debugging(query)
         format_query(query, response)
     else:
         format_query(query, "The question is not related to hospitality.\n")
+
+def run_orchestrator(query: str) -> str:
+    recomended_agent = detect_llm_agent(query)
+
+    if "sql" in recomended_agent:
+        if validate_question(query):
+            result = two_step_query(query)
+            return result
+        else:
+            return "The question is not valid for the hospitality bookings database."
+
+    elif "rag" in recomended_agent:
+        # RAG path
+        response = hotel_details_agent(query)
+        return response
+
+    else:
+        return "The question is not related to hospitality."
+
 
 def test_orchestrator_agent_selection():
     #lets test the efficiency of the orchestrator decision of the agent selection with multiple queries
@@ -156,8 +175,8 @@ def test_orchestrator_agent_selection():
     sys_print(f"Orchestrator Agent Selection Accuracy: {total_correct}/{total_tests} = {total_correct/total_tests*100:.2f}% correct.")
 
 if __name__ == "__main__":  
-    # Uncomment the line below to run the orchestrator function
-    run_orchestrator()
+    # Uncomment the line below to run the orchestrator function with input
+    run_orchestrator_entering_input()
     
     # Uncomment the line below to run the test for accuracy in classification function
     #test_orchestrator_agent_selection()

@@ -34,8 +34,14 @@ def format_response(result: dict) -> str:
 
     return md
 
-def hotel_details_agent(query: str):
+def hotel_details_agent_debugging(query: str):
     query = preprocess_query(query)
     result = qa_chain.invoke(query)
     formatted_response = format_response(result)
     return formatted_response
+
+def hotel_details_agent(query: str):
+    query = preprocess_query(query)
+    result = qa_chain.invoke(query)
+    answer = result["result"]
+    return str(answer)

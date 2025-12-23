@@ -43,6 +43,17 @@ except Exception as e:
     logger.warning(f"Error loading Exercise 0 agent: {e}. Using hardcoded responses.")
     EXERCISE_0_AVAILABLE = False
 
+# Import orchestrator agent
+ORCHESTRATOR_AVAILABLE = False
+try:
+    from agents.orchestrator import run_orchestrator
+    ORCHESTRATOR_AVAILABLE = True
+    logger.info("✅ Orchestrator agent loaded successfully")
+except Exception as e:
+    logger.warning(f"❌ Orchestrator agent not available: {e}")
+    ORCHESTRATOR_AVAILABLE = False
+
+
 
 # Hardcoded responses for demo queries
 HARDCODED_RESPONSES = {
@@ -233,13 +244,13 @@ async def websocket_endpoint(websocket: WebSocket, uuid: str):
                     user_query = data
                 
                 # Get response from Exercise 0 agent or fallback to hardcoded
-                if EXERCISE_0_AVAILABLE:
+                if ORCHESTRATOR_AVAILABLE:
                     try:
-                        logger.info(f"Using Exercise 0 agent for query: {user_query[:100]}...")
-                        response_content = await handle_hotel_query_simple(user_query)
-                        logger.info(f"✅ Exercise 0 agent response generated successfully for {uuid}")
+                        logger.info(f"Using orchestrator for query: {user_query[:100]}...")
+                        response_content = run_orchestrator(user_query)
+                        logger.info(f"✅ Orchestrator response generated successfully for {uuid}")
                     except Exception as e:
-                        logger.error(f"❌ Error in Exercise 0 agent: {e}", exc_info=True)
+                        logger.error(f"❌ Error in orchestrator: {e}", exc_info=True)
                         logger.warning(f"Falling back to hardcoded response for {uuid}")
                         response_content = find_matching_response(user_query)
                 else:
