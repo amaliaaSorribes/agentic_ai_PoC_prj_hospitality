@@ -22,27 +22,6 @@ from fastapi.templating import Jinja2Templates
 from util.logger_config import logger
 from util.configuration import settings, PROJECT_ROOT
 
-# Import Exercise 0 agent
-EXERCISE_0_AVAILABLE = False
-try:
-    from agents.hotel_simple_agent import handle_hotel_query_simple, load_hotel_data
-    # Try to load hotel data to verify everything is set up correctly
-    try:
-        load_hotel_data()
-        EXERCISE_0_AVAILABLE = True
-        logger.info("✅ Exercise 0 agent loaded successfully and hotel data verified")
-    except Exception as e:
-        logger.warning(f"Exercise 0 agent code loaded but data/files not ready: {e}")
-        logger.warning("Will use hardcoded responses until hotel data is available")
-        EXERCISE_0_AVAILABLE = False
-except ImportError as e:
-    logger.warning(f"Exercise 0 agent not available (ImportError): {e}")
-    logger.warning("Using hardcoded responses. Install LangChain dependencies if needed.")
-    EXERCISE_0_AVAILABLE = False
-except Exception as e:
-    logger.warning(f"Error loading Exercise 0 agent: {e}. Using hardcoded responses.")
-    EXERCISE_0_AVAILABLE = False
-
 # Import orchestrator agent
 ORCHESTRATOR_AVAILABLE = False
 try:
@@ -52,8 +31,6 @@ try:
 except Exception as e:
     logger.warning(f"❌ Orchestrator agent not available: {e}")
     ORCHESTRATOR_AVAILABLE = False
-
-
 
 # Hardcoded responses for demo queries
 HARDCODED_RESPONSES = {
@@ -251,12 +228,12 @@ async def websocket_endpoint(websocket: WebSocket, uuid: str):
                         logger.info(f"✅ Orchestrator response generated successfully for {uuid}")
                     except Exception as e:
                         logger.error(f"❌ Error in orchestrator: {e}", exc_info=True)
-                        logger.warning(f"Falling back to hardcoded response for {uuid}")
-                        response_content = find_matching_response(user_query)
+                        #logger.warning(f"Falling back to hardcoded response for {uuid}")
+                        response_content = "None" #find_matching_response(user_query)
                 else:
                     # Fallback to hardcoded responses
                     logger.debug(f"Using hardcoded responses (Exercise 0 not available) for {uuid}")
-                    response_content = find_matching_response(user_query)
+                    response_content =find_matching_response(user_query)
                 
                 # Send response back to client
                 agent_message = {
